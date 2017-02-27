@@ -73,6 +73,7 @@ public protocol DataSourceProtocol {
      - returns: The footer title for the specified section.
      */
     func footerTitle(inSection section: Int) -> String?
+
 }
 
 
@@ -87,6 +88,10 @@ extension DataSourceProtocol {
     }
 }
 
+public protocol TableSectionIndexing {
+    func sectionIndexTitles() -> [String]
+    func section(forSectionIndexTitle title: String, at index: Int) -> Int
+}
 
 /**
  A instance of `DataSource` is a concrete `DataSourceProtocol`.
@@ -158,6 +163,17 @@ public struct DataSource<S: SectionInfoProtocol>: DataSourceProtocol {
     public func footerTitle(inSection section: Int) -> String? {
         guard section < sections.count else { return nil }
         return sections[section].footerTitle
+    }
+    
+    /// :nodoc:
+    public func sectionIndexTitles() -> [String] {
+        var titles: [String] = []
+        for section in sections {
+            if let title = section.headerTitle {
+                titles.append(title)
+            }
+        }
+        return titles
     }
 
 

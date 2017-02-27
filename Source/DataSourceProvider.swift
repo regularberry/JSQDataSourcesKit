@@ -112,6 +112,16 @@ public extension DataSourceProvider where CellFactory.View: UITableViewCell {
         dataSource.tableCommitEditingStyleForRow = { [unowned self] (tableView, editingStyle, indexPath) in
             self.tableEditingController?.commitEditing(tableView, editingStyle, indexPath)
         }
+        
+        if self.dataSource is TableSectionIndexing {
+            dataSource.tableSectionTitles = { [unowned self] () -> [String] in
+                return (self.dataSource as! TableSectionIndexing).sectionIndexTitles()
+            }
+            
+            dataSource.tableSectionForSectionIndexTitle = { [unowned self] (title, index) -> Int in
+                return (self.dataSource as! TableSectionIndexing).section(forSectionIndexTitle: title, at: index)
+            }
+        }
 
         return dataSource
     }
