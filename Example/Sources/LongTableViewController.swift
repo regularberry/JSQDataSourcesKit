@@ -38,6 +38,9 @@ struct AlphabatizedStrings: DataSourceProtocol, TableSectionIndexing {
     let collation = UILocalizedIndexedCollation.current()
     var sections: [[String]] = []
     var strings: [String]
+    var convertedSection: [Int:Int] = [:]
+    var sectionToContent: [Int:Int] = [:]
+    var totalSections = 0
     
     init(strings: [String]) {
         self.strings = strings
@@ -50,36 +53,55 @@ struct AlphabatizedStrings: DataSourceProtocol, TableSectionIndexing {
             let sectionNumber = collation.section(for: object, collationStringSelector: selector)
             sections[sectionNumber].append(object as! String)
         }
+        
+        var currentIndex = -1
+        for (index, section) in sections.enumerated() {
+            if section.count > 0 {
+                currentIndex += 1
+                sectionToContent[currentIndex] = index
+            }
+            convertedSection[index] = max(currentIndex, 0)
+            
+        }
+        totalSections = currentIndex + 1
     }
     
     static func makeHugeList() -> AlphabatizedStrings {
         var strings: [String] = []
         for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".characters {
+            if arc4random() % 3 == 0 {
+                continue
+            }
             for num in 1...5 {
                 strings.append("\(letter)\(num)")
             }
+            
         }
         return AlphabatizedStrings(strings: strings)
     }
     
+    func sectionArrayForSection(section: Int) -> [String] {
+        return sections[sectionToContent[section]!]
+    }
+    
     func numberOfSections() -> Int {
-        return sections.count
+        return totalSections
     }
     
     func numberOfItems(inSection section: Int) -> Int {
-        return sections[section].count
+        return sectionArrayForSection(section: section).count
     }
     
     func items(inSection section: Int) -> [String]? {
-        return sections[section]
+        return sectionArrayForSection(section: section)
     }
     
     func item(atRow row: Int, inSection section: Int) -> String? {
-        return sections[section][row]
+        return sectionArrayForSection(section: section)[row]
     }
     
     func headerTitle(inSection section: Int) -> String? {
-        return collation.sectionTitles[section]
+        return collation.sectionTitles[sectionToContent[section]!]
     }
     
     func footerTitle(inSection section: Int) -> String? {
@@ -91,6 +113,6 @@ struct AlphabatizedStrings: DataSourceProtocol, TableSectionIndexing {
     }
     
     func section(forSectionIndexTitle title: String, at index: Int) -> Int {
-        return collation.section(forSectionIndexTitle: index)
+        return convertedSection[collation.section(forSectionIndexTitle: index)]!
     }
 }
